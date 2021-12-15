@@ -1,10 +1,10 @@
-use nalgebra::Vector3;
 use crate::ray::Ray;
+use nalgebra::Vector3;
 
 pub struct HitRecord {
     pub t: f32,
     pub p: Vector3<f32>,
-    pub normal: Vector3<f32>
+    pub normal: Vector3<f32>,
 }
 
 pub trait Hittable {
@@ -12,11 +12,13 @@ pub trait Hittable {
 }
 
 pub struct HittableList {
-    list: Vec<Box<dyn Hittable>>
+    list: Vec<Box<dyn Hittable>>,
 }
 
 impl HittableList {
-    pub fn new(list: Vec<Box<dyn Hittable>>) -> Self { HittableList { list } }
+    pub fn new(list: Vec<Box<dyn Hittable>>) -> Self {
+        HittableList { list }
+    }
 }
 
 impl Hittable for HittableList {

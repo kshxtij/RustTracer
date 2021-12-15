@@ -1,14 +1,16 @@
-use nalgebra::Vector3;
+use crate::hittable::{HitRecord, Hittable};
 use crate::ray::Ray;
-use crate::hittable::{Hittable, HitRecord};
+use nalgebra::Vector3;
 
 pub struct Sphere {
     center: Vector3<f32>,
-    radius: f32
+    radius: f32,
 }
 
 impl Sphere {
-    pub fn new(center: Vector3<f32>, radius: f32) -> Self { Sphere {center, radius} }
+    pub fn new(center: Vector3<f32>, radius: f32) -> Self {
+        Sphere { center, radius }
+    }
 }
 
 impl Hittable for Sphere {
@@ -24,15 +26,15 @@ impl Hittable for Sphere {
             if t < t_max && t > t_min {
                 let p = ray.point_at_parameter(t);
                 let normal = (p - self.center) / self.radius;
-                return Some(HitRecord { t, p, normal })
+                return Some(HitRecord { t, p, normal });
             }
             let t = (-b + sqrt_discriminant) / a;
             if t < t_max && t > t_min {
                 let p = ray.point_at_parameter(t);
                 let normal = (p - self.center) / self.radius;
-                return Some(HitRecord { t, p, normal })
+                return Some(HitRecord { t, p, normal });
             }
         }
-        return None
+        return None;
     }
 }
