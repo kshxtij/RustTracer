@@ -1,16 +1,19 @@
 mod hittable;
 mod ray;
 mod sphere;
+mod camera;
 mod util;
 
 use image::{imageops, ImageBuffer, RgbImage};
 use nalgebra::Vector3;
 use std::env;
 use std::time::Instant;
+use rand::Rng;
 
 use crate::hittable::{Hittable, HittableList};
 use crate::ray::Ray;
 use crate::sphere::Sphere;
+use crate::camera::Camera;
 use crate::util::format_string;
 
 fn color(ray: &Ray, world: &HittableList) -> Vector3<f32> {
@@ -24,23 +27,30 @@ fn color(ray: &Ray, world: &HittableList) -> Vector3<f32> {
 }
 
 fn main() {
+    let mut rng = rand::thread_rng();
     let args: Vec<String> = env::args().collect();
-    let nx = args[1].parse::<u32>().unwrap();
-    let ny = args[2].parse::<u32>().unwrap();
-    let lower_left_corner = Vector3::new(-2.0, -1.0, -1.0);
-    let horizontal = Vector3::new(4.0, 0.0, 0.0);
-    let vertical = Vector3::new(0.0, 2.0, 0.0);
-    let origin = Vector3::new(0.0, 0.0, 0.0);
+    let nx = args[1].parse::<f32>().unwrap();
+    // let ny = args[2].parse::<u32>().unwrap();
+    let aspect_ratio = 16.0/9.0;
+    let ny = nx as f32 / aspect_ratio;
+    let ns = args[2].parse::<u32>().unwrap();
+    let cam = Camera::new();
     let world = HittableList::new(vec![
         Box::new(Sphere::new(Vector3::new(0.0, 0.0, -1.0), 0.5)),
         Box::new(Sphere::new(Vector3::new(0.0, -100.5, -1.0), 100.0)),
     ]);
-    let mut img: RgbImage = ImageBuffer::new(nx, ny);
+    let mut img: RgbImage = ImageBuffer::new(nx as u32, ny as u32);
     let start = Instant::now();
-    for j in (0..ny).rev() {
-        for i in 0..nx {
-            let ray = Ray::new(origin, lower_left_corner + (i as f32 / nx as f32) * horizontal + (j as f32 / ny as f32) * vertical,);
-            let col = color(&ray, &world);
+    for j in 0..(ny as u32) {
+        for i in 0..(nx as u32) {
+            let mut col = Vector3::new(0.0, 0.0, 0.0);
+            for _ in 0..ns {
+                let u = (i as f32 + rng.gen::<f32>()) / nx;
+                let v = (j as f32 + rng.gen::<f32>()) / ny;
+                let ray = cam.get_ray(u, v);
+                col += color(&ray, &world);
+            }
+            col /= ns as f32;
             let ir = (255.99 * col[0]) as i32;
             let ig = (255.99 * col[1]) as i32;
             let ib = (255.99 * col[2]) as i32;
@@ -49,6 +59,6 @@ fn main() {
     }
     let duration = start.elapsed();
     imageops::flip_vertical(&img)
-        .save(format!("images/{}x{}.{:}.png", nx, ny, format_string(duration)))
+        .save(format!("images/{}x{}:{:}.png", nx, ny, format_string(duration)))
         .unwrap();
 }
